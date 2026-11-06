@@ -11,12 +11,23 @@ jobs:
         with:
           distribution: 'zulu'
           java-version: '17'
-      - name: Build with Gradle
+      - name: Auto-locate and Build with Gradle
         run: |
-          cd tem-hs-app-v2
-          chmod +x gradlew
-          ./gradlew assembleDebug
+          if [ -f "gradlew" ]; then
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          elif [ -f "tem-hs-app-v2/gradlew" ]; then
+            cd tem-hs-app-v2
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          else
+            GRADLEW_DIR=$(find . -name "gradlew" -exec dirname {} \; | head -n 1)
+            echo "Found gradlew in: $GRADLEW_DIR"
+            cd "$GRADLEW_DIR"
+            chmod +x gradlew
+            ./gradlew assembleDebug
+          fi
       - uses: actions/upload-artifact@v4
         with:
           name: DocMauTem-apk
-          path: tem-hs-app-v2/app/build/outputs/apk/debug/app-debug.apk
+          path: '**/app/build/outputs/apk/debug/app-debug.apk'
